@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "cacheable_delegator"
   gem.homepage = "http://github.com/dannguyen/cacheable_delegator"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{Create a cache model}
+  gem.description = %Q{Create a cache model for your active records}
   gem.email = "dansonguyen@gmail.com"
   gem.authors = ["Dan Nguyen"]
   # dependencies defined in Gemfile
