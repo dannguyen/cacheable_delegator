@@ -35,12 +35,10 @@ describe CacheableDelegator do
         expect(@cache_record.delegate_foo).to eq @my_record.foo
       end
 
-
       it 'will use its own :foo, without :delegate_ prefix' do 
         @cache_record.foo = 'baz'
         expect(@cache_record.foo).to eq 'baz'
       end     
-
     end
   end
 end
