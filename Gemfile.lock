@@ -1,6 +1,9 @@
 GEM
   remote: http://rubygems.org/
   specs:
+    active_record_inline_schema (0.6.1)
+      activerecord (>= 3)
+      activesupport
     activemodel (3.2.14)
       activesupport (= 3.2.14)
       builder (~> 3.0.0)
@@ -80,6 +83,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  active_record_inline_schema
   activerecord (~> 3.2.14)
   activesupport (~> 3.2.14)
   bundler (~> 1.0)

@@ -14,3 +14,4 @@ end
 
 gem 'pry'
 gem 'activesupport', '~> 3.2.14'
+gem 'active_record_inline_schema'

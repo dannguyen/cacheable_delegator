@@ -9,9 +9,9 @@ describe CacheableDelegator do
         expect{ MyCachedRecord.cache_and_delegate("X::Foo") }.to raise_error ArgumentError
       end
 
-      it 'should set the :cached_class attribute' do 
+      it 'should set the :source_class attribute' do 
         MyCachedRecord.cache_and_delegate MyRecord
-        expect(MyCachedRecord.cached_class).to eq MyRecord
+        expect(MyCachedRecord.source_class).to eq MyRecord
       end
     end
   end
@@ -38,7 +38,10 @@ describe CacheableDelegator do
       it 'will use its own :foo, without :delegate_ prefix' do 
         @cache_record.foo = 'baz'
         expect(@cache_record.foo).to eq 'baz'
-      end     
+      end
     end
   end
+
+
+
 end
