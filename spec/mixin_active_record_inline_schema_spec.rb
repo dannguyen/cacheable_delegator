@@ -32,8 +32,59 @@ describe CacheableDelegator do
         end
       end
 
-      it 'should allow addition of different columns'
-      it 'should allow exclusion of specified columns'
+      context 'customization of columns with .add_custom_column' do 
+        after(:each) do 
+          reload_records!
+        end
+
+        it 'should allow addition of different columns' do 
+          MyCachedRecord.cache_and_delegate(MyRecord) do |cache|
+            cache.add_custom_column :my_record_special_foo
+          end
+          MyCachedRecord.upgrade_schema!
+
+          expect(MyCachedRecord.column_names).to include('my_record_special_foo')
+        end
+
+        it 'by default, should raise error if source_class does not respond_to custom column name' do 
+          expect{ MyCachedRecord.add_custom_column :not_foo_of_record }.to raise_error ArgumentError
+        end
+
+
+        context ':serialize option' do 
+          before(:each) do 
+            @source = MyRecord.create
+            @the_foo_array = @source.foo_array.dup
+          end
+          after(:each) do 
+            reload_records!
+          end
+
+          it 'should accept :serialize => true' do 
+            MyCachedRecord.add_custom_column :foo_array, serialize: true
+            MyCachedRecord.upgrade_schema!
+            cache = MyCachedRecord.create_cache(@source)
+            # remove @source to make sure things are cached
+            @source.delete 
+            cache = MyCachedRecord.find(cache.id)
+
+            expect(cache.foo_array).to be_an Array
+            expect(cache.foo_array).to include(*@the_foo_array)
+          end
+
+
+          it 'respects .serialize second argument' do 
+            MyCachedRecord.add_custom_column :foo_array, serialize: Hash
+            MyCachedRecord.upgrade_schema!
+            expect{ MyCachedRecord.create_cache(@source)  }.to raise_error ActiveRecord::SerializationTypeMismatch
+          end
+
+        end
+
+        it 'should allow exclusion of specified columns'
+
+
+      end
     end
 
 
@@ -47,8 +98,7 @@ describe CacheableDelegator do
 
 
       describe '#build_cache' do 
-        
-
+      
         it 'should have same awesome_value as its source_object' do 
           expect(@cache.awesome_value).to eq 88
         end
@@ -65,14 +115,12 @@ describe CacheableDelegator do
       describe '#create_cache' do
         it 'should be a saved record' do 
           savedcache = MyCachedRecord.create_cache(@source)
+
           expect(savedcache.valid?).to be_true
           expect(savedcache.new_record?).to be_false
         end
 
-      
-        context 'duplicating associated records' do 
-          it 'should only duplicate one level down'
-        end
+
 
       end
 
@@ -81,6 +129,13 @@ describe CacheableDelegator do
     end
 
     context 'maintanence' do 
+
+        context 'duplicating associated records' do 
+          it 'should only duplicate one level down' do 
+            pending "dumping to yaml"
+          end
+        end
+
     end
 
   end

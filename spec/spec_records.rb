@@ -10,11 +10,7 @@ ActiveRecord::Base.establish_connection(
   :adapter => "sqlite3",
   :database => ":memory:"
 )
-ActiveRecord::Schema.define do
-
-
-  drop_table :my_records if ActiveRecord::Base.connection.table_exists?(:my_records)
-   
+ActiveRecord::Schema.define do   
   create_table :my_records, force: true do |t|
     t.integer :awesome_value
     t.string  :name
@@ -29,22 +25,46 @@ ActiveRecord::Schema.define do
     t.integer :source_record_id
     t.string  :source_record_type
   end
+
+
+  create_table :my_covers, force: true do |t|
+    t.integer :my_record_id
+    t.string  :subject
+    t.integer :year, default: 1999
+  end
 end
 
 
 class MyRecord < ActiveRecord::Base
+  has_many :my_covers
   def foo
     "This is foo"
   end
 
   def foo_double_awesome_value
-    awesome_value * 2
+    awesome_value.to_i * 2
   end
+
+  def my_record_special_foo
+    'special foo'
+  end
+
+
+  def foo_array
+    [awesome_value, 'foo!', awesome_value]
+  end
+
 end
-MyRecord.reset_column_information
+
+class MyCover < ActiveRecord::Base
+  belongs_to :my_record
+end
 
 
 class MyCachedRecord < ActiveRecord::Base
+  # for testing purposes
+   self.serialized_attributes = {}
+
   include CacheableDelegator
   cache_and_delegate MyRecord
 end
