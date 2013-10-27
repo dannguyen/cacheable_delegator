@@ -119,13 +119,7 @@ describe CacheableDelegator do
           expect(savedcache.valid?).to be_true
           expect(savedcache.new_record?).to be_false
         end
-
-
-
       end
-
-
-
     end
 
     context 'maintanence' do 
