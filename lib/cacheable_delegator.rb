@@ -15,13 +15,16 @@ module CacheableDelegator
 
   module ClassMethods
 
+    def cache_record_class(klass)
+      raise ArgumentError, "Must pass in a class, not a #{klass}" unless klass.is_a?(Class)
+      self.source_class = klass
+      belongs_to :source_record, class_name: self.source_class.to_s     
+    end
+
     # this method defines the relation to an existing ActiveModel
     # it does not change the schema unless invoked with the bang!
     def cache_and_delegate(klass, opts={}, &blk)
-      raise ArgumentError, "Must pass in a class, not a #{klass}" unless klass.is_a?(Class)
-      self.source_class = klass
-      belongs_to :source_record, class_name: self.source_class.to_s      
-
+      cache_record_class(klass)
       # This is why you have to define custom columns in the given block
       # or after the call to cache and delegate
 
@@ -84,6 +87,10 @@ module CacheableDelegator
       source_class.columns.reject{|c| EXCLUDED_FIELDS.any?{|f| f.to_s == c.name }}
     end
 
+    def source_column_names
+      source_columns.map{|s| s.name}
+    end
+
     def source_reflections
       source_class.reflections
     end
@@ -112,15 +119,15 @@ module CacheableDelegator
     def add_custom_column(col_name, opts={})
       col_str = col_name.to_s
       is_bespoke = opts.delete :bespoke     
-      if !self.source_class.method_defined?(col_str) && is_bespoke != true
-        raise ArgumentError, "Since :bespoke != true, #{self.source_class} was expected to respond_to? :#{col_str}"
+      if !(self.source_class.method_defined?(col_str) || self.source_class.new.respond_to?(col_str)) && is_bespoke != true
+        raise ArgumentError, "Since :bespoke != true, instance of #{self.source_class} was expected to respond_to? :#{col_str}"
       end
 
       custom_columns[col_name.to_s] = opts
     end
 
     def custom_columns
-      self._custom_columns ||= {}
+      self._custom_columns
     end
 
     def reset_custom_columns!
@@ -158,16 +165,23 @@ module CacheableDelegator
 
   ################### Builder methods
   module ClassMethods
-    def build_cache(source_obj)
+
+    def build_attributes_hash(source_obj)
       att_hsh = self.value_column_names.inject({}) do |hsh, cname|
-        hsh[cname] = source_obj.send cname
+        if source_obj.respond_to?(cname)
+          hsh[cname] = source_obj.send cname
+        end
         hsh
       end
+    end
 
-      obj = self.new(att_hsh)
-      obj.source_record = source_obj
+    def build_cache(source_obj)
+      att_hsh = build_attributes_hash(source_obj)
 
-      obj
+      c_record = self.new(att_hsh)
+      c_record.source_record = source_obj
+
+      c_record
     end
 
     def create_cache(obj)
@@ -177,6 +191,18 @@ module CacheableDelegator
       c
     end
   end
+
+    # instance method
+    # pre: must already have source_record set
+
+
+  def refresh_cache!
+    atts = self.class.build_attributes_hash(self.source_record)
+    self.update_attributes(obj)
+
+    self
+  end
+
 
 end
 
