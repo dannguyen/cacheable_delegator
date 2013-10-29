@@ -120,7 +120,7 @@ module CacheableDelegator
       col_str = col_name.to_s
       is_bespoke = opts.delete :bespoke     
       if !(self.source_class.method_defined?(col_str) || self.source_class.new.respond_to?(col_str)) && is_bespoke != true
-        raise ArgumentError, "Since :bespoke != true, instance of #{self.source_class} was expected to respond_to? :#{col_str}"
+        raise NonExistentInstanceMethod, "Since :bespoke != true, instance of #{self.source_class} was expected to respond_to? :#{col_str}"
       end
 
       custom_columns[col_name.to_s] = opts
@@ -206,3 +206,5 @@ module CacheableDelegator
 
 end
 
+
+class NonExistentInstanceMethod < ArgumentError; end

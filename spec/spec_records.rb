@@ -49,11 +49,35 @@ class MyRecord < ActiveRecord::Base
     'special foo'
   end
 
+  def superfluous_instance_method
+    'hello'
+  end
 
   def foo_array
     [awesome_value, 'foo!', awesome_value]
   end
 
+
+
+  DELEGATING_REGEX ||= /^dynamic_(\w+)/
+
+  def method_missing(foo, *args, &block)
+    if foomatch = foo.to_s.match(DELEGATING_REGEX)
+      foo = foomatch[1].to_s
+      self.send(foo, *args, &block)
+    else
+      super
+    end
+  end
+
+  def respond_to?(method, f=false)
+    method =~ DELEGATING_REGEX || super
+  end
+
+
+  def respond_to_missing?(method, *)
+    method =~ DELEGATING_REGEX || super
+  end
 end
 
 class MyCover < ActiveRecord::Base

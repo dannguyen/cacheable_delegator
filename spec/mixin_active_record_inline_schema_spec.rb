@@ -47,7 +47,7 @@ describe CacheableDelegator do
         end
 
         it 'by default, should raise error if source_class does not respond_to custom column name' do 
-          expect{ MyCachedRecord.add_custom_column :not_foo_of_record }.to raise_error ArgumentError
+          expect{ MyCachedRecord.add_custom_column :not_foo_of_record }.to raise_error NonExistentInstanceMethod
         end
 
 
@@ -80,6 +80,38 @@ describe CacheableDelegator do
           end
 
         end
+
+        context 'enforcement of responds_to' do 
+          it 'should allow adding of columns based on defined instance method' do 
+            MyCachedRecord.add_custom_column :superfluous_instance_method
+            MyCachedRecord.upgrade_schema!
+
+            expect(MyCachedRecord.column_names.include?('superfluous_instance_method')).to be_true
+          end
+
+          context 'respond_to_missing? works' do 
+            it 'should allow reference to dynamically defined methods' do 
+              MyCachedRecord.add_custom_column :dynamic_foo
+              MyCachedRecord.upgrade_schema!
+
+              expect(MyCachedRecord.column_names.include?('dynamic_foo')).to be_true 
+            end
+
+          end
+
+          context 'non-existent' do 
+            it 'should raise error of undefined instance methods' do 
+              expect{ MyCachedRecord.add_custom_column :non_existent_method }.to raise_error NonExistentInstanceMethod
+            end
+
+            it 'should not raise error if bespoke is true' do 
+              MyCachedRecord.add_custom_column :non_existent_method, bespoke: true 
+              MyCachedRecord.upgrade_schema!
+              expect(MyCachedRecord.column_names.include?('non_existent_method')).to be_true
+            end            
+          end
+        end
+
 
         it 'should allow exclusion of specified columns'
 
