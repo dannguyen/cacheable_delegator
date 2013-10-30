@@ -91,6 +91,8 @@ class MyCachedRecord < ActiveRecord::Base
 
   include CacheableDelegator
   cache_and_delegate MyRecord
+
+  self.set_serialized_columns!
 end
 MyCachedRecord.reset_column_information
 

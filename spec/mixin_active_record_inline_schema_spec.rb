@@ -77,6 +77,9 @@ describe CacheableDelegator do
             MyCachedRecord.add_custom_column :foo_array, serialize: Hash
             MyCachedRecord.upgrade_schema!
             expect{ MyCachedRecord.create_cache(@source)  }.to raise_error ActiveRecord::SerializationTypeMismatch
+
+            # throwing this in there ad hoc to make sure nothing breaks...TODO fix later
+            MyCachedRecord.set_serialized_columns!
           end
 
         end

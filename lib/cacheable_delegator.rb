@@ -51,34 +51,48 @@ module CacheableDelegator
     # will call ActiveRecord::Base.serialize based on parameters passed in
     # from 
     def upgrade_schema!
-      # first we create a hash of source_columns
-      source_column_hash = source_columns.inject({}) do |shash, source_col|
-        source_col_atts = COL_ATTRIBUTES_TO_UPGRADE.inject({}){|hsh, att| hsh[att.to_sym] = source_col.send att; hsh  }
-        shash[source_col.name] = source_col_atts
-
-        shash
-      end
-
       # then we merge it with custom_columns
-      columns_to_add = source_column_hash.merge(custom_columns)
-
+      columns_to_add = generate_columns_to_upgrade(custom_columns)
 
       # then we add them all in using .col method from active_record_inline_schema
       columns_to_add.each_pair do |col_name, col_atts|
-        is_serialize = col_atts.delete(:serialize)
-        col col_name, col_atts
+        column_atts_without_serialized_att = col_atts.dup.tap{|h| h.delete :serialize }
+        col( col_name, column_atts_without_serialized_att )
+      end
 
-        # by default, the client passes in serialize: true for plain serialization
-        #  and has the option to pass in serialize: Hash
-        if is_serialize
+      self.auto_upgrade!( :gentle => true )
+      self.set_serialized_columns!
+    end
+
+
+    # a soft method that is run every time the class is loaded
+    # just to make sure things are properly serialized
+    def set_serialized_columns!
+      cols = generate_columns_to_upgrade(custom_columns)
+      cols.each_pair do |col_name, col_atts|
+        if is_serialize = col_atts.delete(:serialize)
+        ##  by default, the client passes in serialize: true for plain serialization
+        ##  and has the option to pass in serialize: Hash
+       
           serialize_klass = (is_serialize == true) ? Object : is_serialize
           serialize col_name, serialize_klass
         end
       end
-
-      self.auto_upgrade!( :gentle => true )
     end
 
+
+    def generate_columns_to_upgrade(custom_cols)
+      # first we create a hash of source_columns
+      source_column_hash = source_columns.inject({}){ |shash, source_col|
+        source_col_atts = COL_ATTRIBUTES_TO_UPGRADE.inject({}){|hsh, att| hsh[att.to_sym] = source_col.send att; hsh  }
+        shash[source_col.name] = source_col_atts
+
+        shash
+      }
+
+      # then we merge it with custom_columns
+      return source_column_hash.merge(custom_cols)
+    end
 
 ##################### source conveniences
 
