@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "cacheable_delegator"
-  s.version = "1.3.0"
+  s.version = "1.4.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Nguyen"]
-  s.date = "2013-10-29"
+  s.date = "2013-10-30"
   s.description = "Create a cache model for your active records"
   s.email = "dansonguyen@gmail.com"
   s.extra_rdoc_files = [
