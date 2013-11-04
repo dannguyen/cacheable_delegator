@@ -152,7 +152,6 @@ module CacheableDelegator
 
 
 
-
   DELEGATING_REGEX = /^delegate_(\w+)/
 
   def method_missing(foo, *args, &block)
@@ -209,15 +208,17 @@ module CacheableDelegator
     # instance method
     # pre: must already have source_record set
 
-  def refresh_cache
+  def refresh_cache(opts={})
     atts = self.class.build_attributes_hash(self.source_record)
-    self.assign_attributes(atts)
+
+    opts[:without_protection] ||= true
+    self.assign_attributes(atts, opts)
 
     self
   end
 
-  def refresh_cache!
-    refresh_cache
+  def refresh_cache!(opts={})
+    refresh_cache(opts)
     self.save
   end
 
