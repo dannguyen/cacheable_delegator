@@ -27,12 +27,10 @@ module CacheableDelegator
       cache_record_class(klass)
       # This is why you have to define custom columns in the given block
       # or after the call to cache and delegate
-
       reset_custom_columns!
       if block_given?
         yield self
       end
-
 
       self.source_class
     end
@@ -219,6 +217,7 @@ module CacheableDelegator
 
   def refresh_cache!(opts={})
     refresh_cache(opts)
+
     self.save
   end
 
