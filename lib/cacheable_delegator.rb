@@ -166,7 +166,7 @@ module CacheableDelegator
   def respond_to?(meth, x=false)
     if meth.match(DELEGATING_REGEX)
       true
-    elsif source_record.respond_to?(meth)
+    elsif source_class.method_defined?(meth)
       true
     else
       super
